@@ -238,18 +238,34 @@
 
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
+  // 이미 한 번 넣어 준 기본 항목 이름. 지운 항목이 다시 생기지 않게 기억해요.
+  const SEEN_KEY = "home-shopping-samples-seen-v1";
+  // 이 기능이 생기기 전부터 있던 기본 항목 (예전 저장 목록은 이것들을 이미 받았어요)
+  const FIRST_SAMPLES = ["대파", "사과", "돼지고기 앞다리살", "우유", "계란", "두부", "휴지"];
+
   function load() {
+    let list = null, seen = null;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) list = JSON.parse(raw);
+      const rawSeen = localStorage.getItem(SEEN_KEY);
+      if (rawSeen) seen = JSON.parse(rawSeen);
     } catch (e) { /* 저장소를 못 쓰면 예시로 시작 */ }
-    return SAMPLE.map(it => ({ ...it, id: uid(), done: false }));
+    if (!Array.isArray(list)) { list = []; seen = []; }
+    else if (!Array.isArray(seen)) { seen = FIRST_SAMPLES; }
+    // 아직 넣어 준 적 없는 새 기본 항목만 더해요
+    SAMPLE.forEach(it => {
+      if (!seen.includes(it.name)) list.push({ ...it, id: uid(), done: false });
+    });
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(SAMPLE.map(it => it.name))); } catch (e) {}
+    return list;
   }
   function save() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (e) {}
   }
 
   let items = load();
+  save();
 
   const grid = document.getElementById("grid");
   const catSelect = document.getElementById("cat");
