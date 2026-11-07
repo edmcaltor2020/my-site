@@ -1,0 +1,366 @@
+<title>우리 집 장보기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  /* Layout: 냉장고 메모 — 위에 제목과 진행 막대, 추가 줄, 분류별 메모 카드가 그리드로 붙어 있음 */
+  :root {
+    --paper: #fbf5e6;
+    --paper-dark: #f2e7cc;
+    --card: #fffdf6;
+    --ink: #4a3b2c;
+    --ink-soft: #85715a;
+    --line: #e6d8b8;
+    --accent: #d27a24;
+    --accent-ink: #ffffff;
+    --accent-dark: #a95d16;
+    --done: #b0a089;
+    --tape: rgba(210, 122, 36, .22);
+    --dot: rgba(160, 120, 60, .07);
+    --danger: #b8432f;
+    --shadow: 0 2px 0 rgba(120, 90, 50, .08), 0 6px 16px rgba(120, 90, 50, .12);
+    --font-display: "Gaegu", "Malgun Gothic", "Apple SD Gothic Neo", cursive;
+    --font-body: "Gowun Dodum", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #241d16; --paper-dark: #2f261d; --card: #2d251c;
+      --ink: #f1e6d2; --ink-soft: #bba78c; --line: #4a3d2e;
+      --accent: #e8954a; --accent-ink: #241d16; --accent-dark: #f2ac6a;
+      --done: #8a7a65; --tape: rgba(232, 149, 74, .25); --dot: rgba(240, 220, 180, .05);
+      --danger: #ee7a64;
+      --shadow: 0 2px 0 rgba(0, 0, 0, .25), 0 6px 16px rgba(0, 0, 0, .35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #241d16; --paper-dark: #2f261d; --card: #2d251c;
+    --ink: #f1e6d2; --ink-soft: #bba78c; --line: #4a3d2e;
+    --accent: #e8954a; --accent-ink: #241d16; --accent-dark: #f2ac6a;
+    --done: #8a7a65; --tape: rgba(232, 149, 74, .25); --dot: rgba(240, 220, 180, .05);
+    --danger: #ee7a64;
+    --shadow: 0 2px 0 rgba(0, 0, 0, .25), 0 6px 16px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background-color: var(--paper);
+    background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+    background-size: 18px 18px;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .wrap {
+    max-width: 880px; margin: 0 auto;
+    padding-block: 28px 56px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  header { text-align: center; margin-bottom: 22px; }
+  h1 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 48px; margin: 0; letter-spacing: 1px;
+    text-wrap: balance;
+  }
+  h1 .cart { display: inline-block; transform: rotate(-8deg); }
+  .progress { font-family: var(--font-display); font-size: 22px; color: var(--ink-soft); }
+  .bar {
+    width: min(320px, 100%); height: 10px; margin: 8px auto 0;
+    border-radius: 99px; background: var(--paper-dark);
+    border: 1px solid var(--line); overflow: hidden;
+  }
+  .bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
+  .status {
+    font-size: 14px; color: var(--ink-soft); margin-top: 8px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--done); }
+  .status.live .dot { background: #4f9a4a; }
+  .status.warn .dot { background: var(--danger); }
+
+  form.add {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 16px; padding: 14px; box-shadow: var(--shadow);
+    margin-bottom: 28px;
+  }
+  form.add input, form.add select, form.add button {
+    font: inherit; color: inherit; min-width: 0;
+    border-radius: 10px; border: 1.5px dashed var(--line);
+    background: var(--paper); padding: 10px 12px;
+  }
+  form.add input:focus-visible, form.add select:focus-visible {
+    outline: none; border-style: solid; border-color: var(--accent);
+  }
+  #name { flex: 3 1 180px; }
+  #qty { flex: 1 1 90px; }
+  #cat { flex: 1.5 1 140px; }
+  form.add button {
+    flex: 0 0 auto; cursor: pointer; font-weight: bold;
+    background: var(--accent); color: var(--accent-ink);
+    border: none; padding: 10px 20px;
+  }
+  form.add button:hover { background: var(--accent-dark); }
+  form.add button:focus-visible, #reset:focus-visible, .del:focus-visible {
+    outline: 2px solid var(--accent-dark); outline-offset: 2px;
+  }
+  form.add[hidden] { display: none; }
+  .readonly { text-align: center; color: var(--ink-soft); font-size: 15px; margin: -12px 0 22px; }
+
+  .grid {
+    display: grid; gap: 22px; align-items: start;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 16px; padding: 16px 18px 12px;
+    box-shadow: var(--shadow); position: relative; min-width: 0;
+  }
+  .card:nth-child(3n+1) { transform: rotate(-.8deg); }
+  .card:nth-child(3n+2) { transform: rotate(.6deg); }
+  .card:nth-child(3n)   { transform: rotate(-.3deg); }
+  .card::before {
+    content: ""; position: absolute; top: -10px; left: 50%;
+    width: 72px; height: 20px; transform: translateX(-50%) rotate(-3deg);
+    background: var(--tape); border-radius: 3px;
+  }
+  .card h2 {
+    font-family: var(--font-display); font-size: 26px; font-weight: 700;
+    margin: 0 0 6px; display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .card h2 small { font-size: 18px; color: var(--ink-soft); font-weight: 400; font-variant-numeric: tabular-nums; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+  li:last-child { border-bottom: none; }
+  li label { flex: 1; display: flex; align-items: center; gap: 10px; cursor: pointer; min-width: 0; }
+  li input[type=checkbox] {
+    appearance: none; -webkit-appearance: none; margin: 0;
+    width: 22px; height: 22px; flex: 0 0 22px;
+    border: 2px solid var(--ink-soft); border-radius: 6px;
+    background: var(--card); cursor: pointer;
+    display: grid; place-content: center;
+  }
+  li input[type=checkbox]::after {
+    content: "✓"; color: var(--accent-ink); font-weight: bold; font-size: 15px;
+    transform: scale(0); transition: transform .12s ease;
+  }
+  li input[type=checkbox]:checked { background: var(--accent); border-color: var(--accent); }
+  li input[type=checkbox]:checked::after { transform: scale(1); }
+  li input[type=checkbox]:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 2px; }
+  li input[type=checkbox]:disabled { cursor: default; opacity: .7; }
+  .text { overflow-wrap: anywhere; }
+  .qty { color: var(--ink-soft); font-size: 15px; white-space: nowrap; }
+  li.done .text, li.done .qty {
+    text-decoration: line-through; text-decoration-thickness: 2px;
+    text-decoration-color: var(--accent); color: var(--done);
+  }
+  .del {
+    background: none; border: none; cursor: pointer; color: var(--done);
+    font-size: 18px; line-height: 1; padding: 4px 6px; border-radius: 6px;
+  }
+  .del:hover { color: var(--danger); background: var(--paper-dark); }
+
+  .empty {
+    grid-column: 1 / -1; text-align: center; color: var(--ink-soft);
+    font-family: var(--font-display); font-size: 24px; padding: 40px 0;
+  }
+
+  footer { text-align: center; margin-top: 32px; }
+  #reset {
+    font: inherit; cursor: pointer; color: var(--ink);
+    background: var(--card); border: 1.5px solid var(--ink-soft);
+    border-radius: 99px; padding: 10px 22px; box-shadow: var(--shadow);
+  }
+  #reset:hover { border-color: var(--accent); color: var(--accent-dark); }
+  .hint { color: var(--ink-soft); font-size: 14px; margin-top: 10px; }
+  .toast { color: var(--danger); font-size: 14px; margin-top: 8px; min-height: 1.2em; }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 38px; }
+    .card { transform: none !important; }
+    form.add button { flex: 1 1 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar span, li input[type=checkbox]::after { transition: none; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1><span class="cart">🛒</span> 우리 집 장보기</h1>
+    <div class="progress" id="progress">목록을 불러오는 중이에요…</div>
+    <div class="bar"><span id="bar"></span></div>
+    <div class="status" id="status"><span class="dot"></span><span id="statusText">연결하는 중</span></div>
+  </header>
+
+  <form class="add" id="addForm" autocomplete="off">
+    <input id="name" placeholder="살 물건 (예: 우유)" required maxlength="40" aria-label="물건 이름">
+    <input id="qty" placeholder="수량 (예: 2개)" maxlength="15" aria-label="수량">
+    <select id="cat" aria-label="분류"></select>
+    <button type="submit">추가</button>
+  </form>
+  <p class="readonly" id="readonly" hidden>보기 전용으로 열렸어요. 체크하고 추가하려면 공유한 사람에게 '참여자' 권한을 받아 주세요.</p>
+
+  <main class="grid" id="grid"></main>
+
+  <footer>
+    <button id="reset" type="button">↺ 체크 모두 풀기</button>
+    <div class="toast" id="toast" role="status"></div>
+    <div class="hint">가족 누구나 같은 목록을 봐요. 누가 체크하면 다른 폰에도 바로 보여요.</div>
+  </footer>
+</div>
+
+<script>
+  const CATEGORIES = [
+    { id: "veg",   name: "🥬 채소·과일" },
+    { id: "meat",  name: "🥩 고기·생선" },
+    { id: "dairy", name: "🥛 유제품·달걀" },
+    { id: "grain", name: "🍚 곡물·가공식품" },
+    { id: "home",  name: "🧻 생활용품" },
+    { id: "etc",   name: "📦 기타" }
+  ];
+  const $ = id => document.getElementById(id);
+  const grid = $("grid"), catSelect = $("cat"), form = $("addForm"), resetBtn = $("reset");
+  CATEGORIES.forEach(c => catSelect.add(new Option(c.name, c.id)));
+
+  let items = [];          // {id, name, qty, cat, done, createdAt}
+  let col = null;          // db collection
+  let canWrite = true;
+  let loaded = false;
+
+  function setStatus(kind, text) {
+    $("status").className = "status " + kind;
+    $("statusText").textContent = text;
+  }
+  function toast(msg) {
+    $("toast").textContent = msg;
+    clearTimeout(toast.t);
+    toast.t = setTimeout(() => { $("toast").textContent = ""; }, 5000);
+  }
+  function setReadOnly() {
+    canWrite = false;
+    form.hidden = true;
+    $("readonly").hidden = false;
+    resetBtn.hidden = true;
+    render();
+  }
+  function el(tag, props = {}, children = []) {
+    const n = document.createElement(tag);
+    Object.assign(n, props);
+    children.forEach(ch => n.append(ch));
+    return n;
+  }
+
+  async function write(fn) {
+    try { await fn(); }
+    catch (e) {
+      if (e && e.code === "invalid_argument") { setReadOnly(); }
+      else if (e && e.code === "quota_exceeded") { toast("저장 공간이 가득 찼어요. 안 쓰는 항목을 지워 주세요."); }
+      else { toast("저장하지 못했어요. 인터넷 연결을 확인하고 다시 해 주세요."); }
+    }
+  }
+
+  function render() {
+    grid.innerHTML = "";
+    if (!loaded) {
+      grid.append(el("div", { className: "empty", textContent: "목록을 불러오는 중이에요…" }));
+      return;
+    }
+    CATEGORIES.forEach(cat => {
+      const list = items.filter(it => (CATEGORIES.some(c => c.id === it.cat) ? it.cat : "etc") === cat.id);
+      if (!list.length) return;
+      const doneCount = list.filter(it => it.done).length;
+      const ul = el("ul");
+      list.forEach(it => {
+        const cb = el("input", { type: "checkbox", checked: !!it.done, disabled: !canWrite });
+        cb.addEventListener("change", () => write(() => col.doc(it.id).update({ done: cb.checked })));
+        const label = el("label", {}, [cb, el("span", { className: "text", textContent: it.name || "" })]);
+        const li = el("li", { className: it.done ? "done" : "" }, [label]);
+        if (it.qty) li.append(el("span", { className: "qty", textContent: it.qty }));
+        if (canWrite) {
+          const del = el("button", { className: "del", type: "button", textContent: "✕", title: "삭제" });
+          del.setAttribute("aria-label", (it.name || "항목") + " 삭제");
+          del.addEventListener("click", () => write(() => col.doc(it.id).delete()));
+          li.append(del);
+        }
+        ul.append(li);
+      });
+      const h2 = el("h2", {}, [cat.name, el("small", { textContent: doneCount + "/" + list.length })]);
+      grid.append(el("section", { className: "card" }, [h2, ul]));
+    });
+    if (!items.length) {
+      grid.append(el("div", { className: "empty", textContent: "목록이 비었어요. 위에서 살 물건을 추가해 보세요 ✏️" }));
+    }
+    const total = items.length, done = items.filter(it => it.done).length;
+    $("progress").textContent = total
+      ? (done === total ? "다 샀어요! 수고했어요 🎉" : `${total}개 중 ${done}개 샀어요`)
+      : "아직 살 물건이 없어요";
+    $("bar").style.width = total ? (done / total * 100) + "%" : "0";
+  }
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    if (!col) { toast("아직 연결되지 않았어요. 잠시 후 다시 해 주세요."); return; }
+    const name = $("name").value.trim();
+    if (!name) return;
+    const data = { name, qty: $("qty").value.trim(), cat: catSelect.value, done: false, createdAt: Date.now() };
+    $("name").value = ""; $("qty").value = ""; $("name").focus();
+    write(() => col.add(data));
+  });
+
+  resetBtn.addEventListener("click", async () => {
+    if (!col) return;
+    const checked = items.filter(it => it.done);
+    for (const it of checked) {
+      await write(() => col.doc(it.id).update({ done: false }));
+      if (!canWrite) break;
+    }
+  });
+
+  render();
+
+  (async () => {
+    const db = window.claude ? await window.claude.use("db") : null;
+    if (!db) {
+      loaded = true; items = [];
+      setStatus("warn", "공유 저장소에 연결할 수 없어요");
+      $("progress").textContent = "claude.ai에 로그인한 상태에서 열어 주세요";
+      form.hidden = true; resetBtn.hidden = true;
+      grid.innerHTML = "";
+      grid.append(el("div", { className: "empty", textContent: "로그인하면 가족과 함께 쓰는 장보기 목록이 보여요." }));
+      return;
+    }
+    col = db.collection("items");
+
+    const user = await window.claude.use("user");
+    if (user) {
+      try {
+        const w = await user.can("data.write");
+        if (w === false) setReadOnly();
+      } catch (e) { /* 알 수 없으면 입력을 그대로 둠 */ }
+    }
+
+    const timer = setTimeout(() => {
+      setStatus("warn", loaded ? "최신 내용이 아닐 수 있어요" : "아직 목록을 불러오지 못했어요");
+    }, 10000);
+
+    col.orderBy("createdAt").onSnapshot(snap => {
+      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      loaded = true;
+      if (!snap.metadata.fromCache) {
+        clearTimeout(timer);
+        setStatus("live", "함께 보는 중 · 바뀌면 바로 보여요");
+      }
+      render();
+    }, err => {
+      clearTimeout(timer);
+      loaded = true;
+      setStatus("warn", "연결이 끊겼어요. 페이지를 다시 열어 주세요");
+      render();
+    });
+  })();
+</script>

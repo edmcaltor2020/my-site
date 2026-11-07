@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>우리 집 장보기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #fbf5e6;
+    --paper-dark: #f3e9d0;
+    --card: #fffdf6;
+    --ink: #4a3b2c;
+    --ink-soft: #8a7660;
+    --line: #e6d8b8;
+    --accent: #d9822b;
+    --accent-dark: #b5651d;
+    --done: #b3a48e;
+    --shadow: 0 2px 0 rgba(120, 90, 50, .08), 0 6px 16px rgba(120, 90, 50, .12);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(rgba(160, 120, 60, .06) 1px, transparent 1px),
+      radial-gradient(rgba(160, 120, 60, .04) 1px, transparent 1px);
+    background-size: 18px 18px, 29px 29px;
+    background-position: 0 0, 9px 13px;
+    color: var(--ink);
+    font-family: "Gowun Dodum", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 16px 56px; }
+
+  header { text-align: center; margin-bottom: 24px; }
+  h1 {
+    font-family: "Gaegu", "Malgun Gothic", cursive;
+    font-weight: 700;
+    font-size: 48px;
+    margin: 0;
+    letter-spacing: 1px;
+  }
+  h1 .cart { display: inline-block; transform: rotate(-8deg); }
+  .progress {
+    font-family: "Gaegu", cursive;
+    font-size: 22px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .bar {
+    width: min(320px, 100%);
+    height: 10px;
+    margin: 8px auto 0;
+    border-radius: 99px;
+    background: var(--paper-dark);
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  .bar span {
+    display: block; height: 100%; width: 0;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width .3s ease;
+  }
+
+  /* 추가 줄 */
+  form.add {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+  }
+  form.add input, form.add select, form.add button {
+    font: inherit; color: inherit;
+    border-radius: 10px;
+    border: 1.5px dashed var(--line);
+    background: var(--paper);
+    padding: 10px 12px;
+    min-width: 0;
+  }
+  form.add input:focus, form.add select:focus {
+    outline: none; border-style: solid; border-color: var(--accent);
+  }
+  #name { flex: 3 1 180px; }
+  #qty { flex: 1 1 90px; }
+  #cat { flex: 1.5 1 140px; }
+  form.add button {
+    flex: 0 0 auto;
+    background: var(--accent); color: #fff;
+    border: none; font-weight: bold;
+    padding: 10px 20px; cursor: pointer;
+  }
+  form.add button:hover { background: var(--accent-dark); }
+
+  /* 분류 카드 */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 22px;
+    align-items: start;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px 18px 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+    position: relative;
+  }
+  .card:nth-child(3n+1) { transform: rotate(-.8deg); }
+  .card:nth-child(3n+2) { transform: rotate(.6deg); }
+  .card:nth-child(3n)   { transform: rotate(-.3deg); }
+  .card::before { /* 테이프 */
+    content: ""; position: absolute; top: -10px; left: 50%;
+    width: 72px; height: 20px; transform: translateX(-50%) rotate(-3deg);
+    background: rgba(217, 130, 43, .22);
+    border-radius: 3px;
+  }
+  .card h2 {
+    font-family: "Gaegu", cursive;
+    font-size: 26px; font-weight: 700;
+    margin: 0 0 6px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .card h2 small { font-size: 18px; color: var(--ink-soft); font-weight: 400; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  li:last-child { border-bottom: none; }
+  li label { flex: 1; display: flex; align-items: center; gap: 10px; cursor: pointer; min-width: 0; }
+  li input[type=checkbox] {
+    appearance: none; -webkit-appearance: none;
+    width: 22px; height: 22px; flex: 0 0 22px;
+    border: 2px solid var(--ink-soft); border-radius: 6px;
+    background: #fff; cursor: pointer; margin: 0;
+    display: grid; place-content: center;
+  }
+  li input[type=checkbox]::after {
+    content: "✓"; color: #fff; font-weight: bold; font-size: 15px;
+    transform: scale(0); transition: transform .12s ease;
+  }
+  li input[type=checkbox]:checked { background: var(--accent); border-color: var(--accent); }
+  li input[type=checkbox]:checked::after { transform: scale(1); }
+  li input[type=checkbox]:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 2px; }
+  .text { overflow-wrap: anywhere; }
+  .qty { color: var(--ink-soft); font-size: 15px; white-space: nowrap; }
+  li.done .text, li.done .qty {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--accent);
+    color: var(--done);
+  }
+  .del {
+    background: none; border: none; cursor: pointer;
+    color: var(--done); font-size: 18px; line-height: 1;
+    padding: 4px 6px; border-radius: 6px;
+  }
+  .del:hover { color: #c0392b; background: var(--paper-dark); }
+
+  .empty {
+    text-align: center; color: var(--ink-soft);
+    font-family: "Gaegu", cursive; font-size: 24px;
+    padding: 40px 0;
+  }
+
+  footer { text-align: center; margin-top: 32px; }
+  #reset {
+    font: inherit; cursor: pointer;
+    background: var(--card); color: var(--ink);
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 99px; padding: 10px 22px;
+    box-shadow: var(--shadow);
+  }
+  #reset:hover { border-color: var(--accent); color: var(--accent-dark); }
+  .hint { color: var(--ink-soft); font-size: 14px; margin-top: 10px; }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 38px; }
+    .card { transform: none !important; }
+    form.add button { flex: 1 1 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="cart">🛒</span> 우리 집 장보기</h1>
+    <div class="progress" id="progress"></div>
+    <div class="bar"><span id="bar"></span></div>
+  </header>
+
+  <form class="add" id="addForm" autocomplete="off">
+    <input id="name" placeholder="살 물건 (예: 우유)" required maxlength="40" aria-label="물건 이름">
+    <input id="qty" placeholder="수량 (예: 2개)" maxlength="15" aria-label="수량">
+    <select id="cat" aria-label="분류"></select>
+    <button type="submit">추가</button>
+  </form>
+
+  <main class="grid" id="grid"></main>
+
+  <footer>
+    <button id="reset" type="button">↺ 체크 모두 풀기</button>
+    <div class="hint">체크한 내용은 이 브라우저에만 저장돼요.</div>
+  </footer>
+</div>
+
+<script>
+  const CATEGORIES = [
+    { id: "veg",   name: "🥬 채소·과일" },
+    { id: "meat",  name: "🥩 고기·생선" },
+    { id: "dairy", name: "🥛 유제품·달걀" },
+    { id: "grain", name: "🍚 곡물·가공식품" },
+    { id: "home",  name: "🧻 생활용품" },
+    { id: "etc",   name: "📦 기타" }
+  ];
+  const STORAGE_KEY = "home-shopping-list-v1";
+  const SAMPLE = [
+    { name: "대파", qty: "1단", cat: "veg" },
+    { name: "사과", qty: "5개", cat: "veg" },
+    { name: "돼지고기 앞다리살", qty: "600g", cat: "meat" },
+    { name: "우유", qty: "2개", cat: "dairy" },
+    { name: "계란", qty: "1판", cat: "dairy" },
+    { name: "두부", qty: "1모", cat: "grain" },
+    { name: "휴지", qty: "1팩", cat: "home" }
+  ];
+
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) { /* 저장소를 못 쓰면 예시로 시작 */ }
+    return SAMPLE.map(it => ({ ...it, id: uid(), done: false }));
+  }
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (e) {}
+  }
+
+  let items = load();
+
+  const grid = document.getElementById("grid");
+  const catSelect = document.getElementById("cat");
+  CATEGORIES.forEach(c => catSelect.add(new Option(c.name, c.id)));
+
+  function el(tag, props = {}, children = []) {
+    const n = document.createElement(tag);
+    Object.assign(n, props);
+    children.forEach(ch => n.append(ch));
+    return n;
+  }
+
+  function render() {
+    grid.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+      const list = items.filter(it => it.cat === cat.id);
+      if (!list.length) return;
+      const doneCount = list.filter(it => it.done).length;
+      const ul = el("ul");
+      list.forEach(it => {
+        const cb = el("input", { type: "checkbox", checked: it.done });
+        cb.addEventListener("change", () => { it.done = cb.checked; save(); render(); });
+        const label = el("label", {}, [cb, el("span", { className: "text", textContent: it.name })]);
+        const li = el("li", { className: it.done ? "done" : "" }, [label]);
+        if (it.qty) li.append(el("span", { className: "qty", textContent: it.qty }));
+        const del = el("button", { className: "del", type: "button", textContent: "✕", title: "삭제" });
+        del.setAttribute("aria-label", it.name + " 삭제");
+        del.addEventListener("click", () => {
+          items = items.filter(x => x.id !== it.id); save(); render();
+        });
+        li.append(del);
+        ul.append(li);
+      });
+      const h2 = el("h2", {}, [cat.name, el("small", { textContent: doneCount + "/" + list.length })]);
+      grid.append(el("section", { className: "card" }, [h2, ul]));
+    });
+    if (!items.length) {
+      grid.append(el("div", { className: "empty", textContent: "목록이 비었어요. 위에서 살 물건을 추가해 보세요 ✏️" }));
+      grid.lastChild.style.gridColumn = "1 / -1";
+    }
+    const total = items.length, done = items.filter(it => it.done).length;
+    document.getElementById("progress").textContent =
+      total ? (done === total ? "다 샀어요! 수고했어요 🎉" : `${total}개 중 ${done}개 샀어요`) : "";
+    document.getElementById("bar").style.width = total ? (done / total * 100) + "%" : "0";
+  }
+
+  document.getElementById("addForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = document.getElementById("name").value.trim();
+    if (!name) return;
+    items.push({
+      id: uid(), name,
+      qty: document.getElementById("qty").value.trim(),
+      cat: catSelect.value, done: false
+    });
+    save(); render();
+    document.getElementById("name").value = "";
+    document.getElementById("qty").value = "";
+    document.getElementById("name").focus();
+  });
+
+  document.getElementById("reset").addEventListener("click", () => {
+    items.forEach(it => it.done = false); save(); render();
+  });
+
+  render();
+</script>
+</body>
+</html>
