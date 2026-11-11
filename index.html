@@ -434,8 +434,8 @@
             <input id="name" name="name" maxlength="50" autocomplete="name">
           </div>
           <div class="field">
-            <label for="contact">연락처 (전화 또는 이메일)</label>
-            <input id="contact" name="contact" maxlength="100" autocomplete="tel">
+            <label for="contactInfo">연락처 (전화 또는 이메일)</label>
+            <input id="contactInfo" name="contact" maxlength="100" autocomplete="tel">
           </div>
         </div>
 
@@ -610,7 +610,7 @@
         message: v('message'),
         anonymous: anon.checked,
         name: anon.checked ? '' : v('name'),
-        contact: anon.checked ? '' : v('contact'),
+        contact: anon.checked ? '' : v('contactInfo'),
         consent: anon.checked ? false : document.getElementById('consent').checked,
         website: v('website'),
       };
