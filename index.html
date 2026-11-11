@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>토론토 갈릴리 장로교회 · 김종화 목사</title>
+<meta name="description" content="토론토 갈릴리 장로교회 김종화 목사입니다. 주일예배 주일 오전 11시, 1183 Davenport Rd., Toronto. 설교 영상과 신앙상담·기도요청을 이곳에서 만나 보세요.">
+<meta property="og:title" content="토론토 갈릴리 장로교회 · 김종화 목사">
+<meta property="og:description" content="토론토에서 함께 예배드릴 교회를 찾고 계신가요? 주일예배 주일 오전 11시.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231f3a2c'/%3E%3Cpath d='M29 14h6v12h10v6H35v18h-6V32H19v-6h10z' fill='%23d3dcc3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  /*
+    Layout: 교회 게시판처럼 예배 시간이 주인공인 한 장짜리 페이지.
+    첫 화면 왼쪽은 인사와 버튼, 오른쪽은 큰 글씨 예배 시간표.
+    아래로 갈수록 예배 안내 → 목사님 → 설교 → 오시는 길 → 문의 순서로,
+    위쪽 모서리를 크게 둥글린 색 띠가 차례로 겹쳐 올라온다.
+  */
+  :root {
+    --pine: #1f3a2c;        /* 짙은 소나무색: 글자와 어두운 띠 */
+    --pine-soft: #3d5a48;
+    --sage: #d3dcc3;        /* 첫 화면 바탕 */
+    --mist: #eef1e8;        /* 페이지 바탕 */
+    --leaf: #e2e8d5;        /* 예배 안내 띠 */
+    --paper: #fbfcf8;       /* 카드와 입력칸 */
+    --moss: #7b8c5c;        /* 선과 작은 강조 */
+    --line: rgba(31, 58, 44, .16);
+    --shadow: 0 24px 48px -24px rgba(31, 58, 44, .35);
+    --ease: cubic-bezier(.16, 1, .3, 1);
+    --font-display: "Gowun Batang", "Nanum Myeongjo", "AppleMyungjo", serif;
+    --font-body: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --r-band: clamp(2rem, 6vw, 4.5rem);
+    --r-card: 1.75rem;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+  body {
+    margin: 0;
+    background: var(--mist);
+    color: var(--pine);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.65;
+    word-break: keep-all;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* 은은한 종이 결 */
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: .035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--moss); outline-offset: 3px; border-radius: 6px; }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+
+  /* 버튼 */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+    min-height: 52px; padding: 0 1.6em; border-radius: 999px;
+    font: 600 1rem/1 var(--font-body); text-decoration: none; cursor: pointer;
+    border: 1.5px solid var(--pine); transition: background .4s var(--ease), color .4s var(--ease), transform .4s var(--ease);
+  }
+  .btn-main { background: var(--pine); color: var(--mist); }
+  .btn-main:hover { background: var(--pine-soft); border-color: var(--pine-soft); transform: translateY(-2px); }
+  .btn-line { background: transparent; color: var(--pine); }
+  .btn-line:hover { background: var(--pine); color: var(--mist); }
+
+  /* 상단 메뉴 */
+  .top {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    padding-top: env(safe-area-inset-top);
+    transition: background .5s var(--ease), box-shadow .5s var(--ease);
+  }
+  .top.scrolled { background: rgba(238, 241, 232, .82); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 1px 0 var(--line); }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 72px; }
+  .brand { text-decoration: none; display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; letter-spacing: -.01em; }
+  .brand svg { flex: 0 0 auto; }
+  .nav { display: flex; gap: 4px; padding: 5px; border-radius: 999px; background: rgba(251, 252, 248, .55); border: 1px solid var(--line); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .nav a { text-decoration: none; font-size: .92rem; font-weight: 500; padding: 8px 16px; border-radius: 999px; transition: background .3s var(--ease); }
+  .nav a:hover { background: rgba(31, 58, 44, .08); }
+  .top .btn { min-height: 44px; padding: 0 1.2em; font-size: .95rem; }
+
+  /* 첫 화면 */
+  .hero { background: var(--sage); padding: calc(72px + env(safe-area-inset-top) + clamp(32px, 7vw, 88px)) 0 calc(var(--r-band) + clamp(40px, 6vw, 72px)); position: relative; overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: clamp(32px, 6vw, 80px); align-items: end; }
+  .hero-church { font-size: 1rem; font-weight: 600; color: var(--pine-soft); margin: 0 0 18px; }
+  .hero h1 {
+    font-family: var(--font-display); font-weight: 700; margin: 0;
+    font-size: clamp(2.3rem, 5.6vw, 4.6rem); line-height: 1.2; letter-spacing: -.035em; text-wrap: balance;
+  }
+  .hero h1 .line { display: block; overflow: hidden; }
+  .hero h1 .line span { display: block; animation: rise 1.2s var(--ease) both; }
+  .hero h1 .line:nth-child(2) span { animation-delay: .12s; }
+  @keyframes rise { from { transform: translateY(105%); } to { transform: translateY(0); } }
+  .hero-lead { font-size: clamp(1.05rem, 1.6vw, 1.2rem); max-width: 34em; margin: 24px 0 32px; color: var(--pine-soft); }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+  /* 예배 시간표 (게시판) */
+  .board {
+    background: var(--pine); color: var(--sage); border-radius: var(--r-card);
+    padding: clamp(24px, 3vw, 36px); box-shadow: var(--shadow);
+  }
+  .board-next { display: flex; gap: 10px; align-items: center; font-size: .95rem; padding-bottom: 18px; margin-bottom: 8px; border-bottom: 1px solid rgba(211, 220, 195, .2); }
+  .board-next .dot { width: 9px; height: 9px; border-radius: 50%; background: #b9d48a; box-shadow: 0 0 0 4px rgba(185, 212, 138, .2); flex: 0 0 auto; }
+  .board ul { list-style: none; margin: 0; padding: 0; }
+  .board li { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 12px; padding: 14px 0; border-bottom: 1px solid rgba(211, 220, 195, .14); }
+  .board li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .board .name { font-size: 1rem; }
+  .board .name small { display: block; font-size: .85rem; opacity: .7; }
+  .board .time { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.9rem, 3.4vw, 2.6rem); line-height: 1; color: #f3f6ec; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .board .time em { font-style: normal; font-family: var(--font-body); font-weight: 500; font-size: .9rem; margin-right: 6px; opacity: .75; letter-spacing: 0; }
+
+  /* 띠 공통 */
+  .band { position: relative; margin-top: calc(var(--r-band) * -1); border-radius: var(--r-band) var(--r-band) 0 0; padding: clamp(64px, 9vw, 120px) 0 calc(var(--r-band) + clamp(56px, 8vw, 104px)); }
+  .band:last-of-type { padding-bottom: clamp(64px, 9vw, 120px); }
+  .band h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.4vw, 3.4rem); line-height: 1.2; letter-spacing: -.03em; margin: 0 0 16px; text-wrap: balance; }
+  .band .intro { max-width: 36em; margin: 0 0 clamp(32px, 5vw, 56px); color: var(--pine-soft); font-size: 1.08rem; }
+  .worship { background: var(--leaf); }
+  .pastor { background: var(--mist); }
+  .sermons { background: var(--pine); color: var(--sage); }
+  .sermons h2 { color: #f3f6ec; }
+  .sermons .intro { color: var(--sage); }
+  .visit { background: var(--sage); }
+  .contact { background: var(--mist); }
+
+  /* 예배 안내 */
+  .worship-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 32px); }
+  .card { background: var(--paper); border-radius: var(--r-card); padding: clamp(24px, 3vw, 36px); border: 1px solid var(--line); }
+  .card h3 { font-family: var(--font-display); font-size: 1.45rem; margin: 0 0 4px; letter-spacing: -.02em; }
+  .card .sub { color: var(--pine-soft); margin: 0 0 20px; font-size: .98rem; }
+  table.times { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  table.times th, table.times td { text-align: left; padding: 14px 0; border-bottom: 1px solid var(--line); vertical-align: baseline; }
+  table.times tr:last-child th, table.times tr:last-child td { border-bottom: 0; }
+  table.times th { font-weight: 600; }
+  table.times td { text-align: right; color: var(--pine-soft); white-space: nowrap; }
+  .dept { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 22px; padding: 0; list-style: none; }
+  .dept li { background: var(--leaf); border-radius: 999px; padding: 8px 18px; font-weight: 600; }
+  .note { font-size: .98rem; color: var(--pine-soft); margin: 0; }
+
+  /* 목사님 */
+  .pastor-grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
+  .portrait {
+    aspect-ratio: 4 / 5; border-radius: 2.5rem; background: var(--leaf);
+    display: grid; place-items: center; text-align: center; color: var(--pine-soft);
+    border: 1px dashed rgba(31, 58, 44, .3); padding: 24px; max-width: 100%;
+  }
+  .portrait strong { display: block; font-family: var(--font-display); font-size: 3.4rem; line-height: 1; color: var(--pine); margin-bottom: 12px; }
+  .pastor h2 { margin-bottom: 6px; }
+  .pastor .role { font-size: 1.1rem; color: var(--pine-soft); margin: 0 0 24px; }
+  .pending { background: var(--paper); border: 1px solid var(--line); border-radius: 1.25rem; padding: 18px 22px; color: var(--pine-soft); margin: 0 0 28px; max-width: 34em; }
+
+  /* 설교 */
+  .sermon-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 32px); align-items: start; }
+  .player { aspect-ratio: 16 / 9; border-radius: var(--r-card); overflow: hidden; background: #16291f; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .6); }
+  .player iframe, .player button { width: 100%; height: 100%; border: 0; display: block; }
+  .player button { padding: 0; cursor: pointer; position: relative; background: #16291f center / cover no-repeat; }
+  .player button::after {
+    content: ""; position: absolute; left: 50%; top: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; border-radius: 50%;
+    background: rgba(243, 246, 236, .92) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5v14l11-7z' fill='%231f3a2c'/%3E%3C/svg%3E") 56% 50% / 34px no-repeat;
+    transition: transform .4s var(--ease);
+  }
+  .player button:hover::after { transform: scale(1.08); }
+  .now { margin: 18px 0 0; }
+  .now strong { display: block; font-family: var(--font-display); font-size: clamp(1.25rem, 2vw, 1.6rem); color: #f3f6ec; line-height: 1.35; letter-spacing: -.02em; }
+  .now span { font-size: .95rem; opacity: .8; }
+  .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .list button {
+    width: 100%; text-align: left; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 14px; align-items: center;
+    background: rgba(243, 246, 236, .06); border: 1px solid rgba(211, 220, 195, .14); color: var(--sage);
+    border-radius: 1.25rem; padding: 10px; cursor: pointer; font: inherit; transition: background .3s var(--ease);
+  }
+  .list button:hover, .list button[aria-current="true"] { background: rgba(243, 246, 236, .14); }
+  .list img { width: 120px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: .8rem; }
+  .list b { display: block; color: #f3f6ec; font-weight: 600; line-height: 1.35; font-size: .98rem; }
+  .list small { opacity: .75; font-size: .85rem; }
+  .sermons .btn-line { border-color: var(--sage); color: var(--sage); margin-top: 20px; }
+  .sermons .btn-line:hover { background: var(--sage); color: var(--pine); }
+
+  /* 오시는 길 */
+  .visit-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(20px, 3vw, 32px); align-items: stretch; }
+  .facts { list-style: none; margin: 0 0 24px; padding: 0; }
+  .facts li { padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .facts li:first-child { padding-top: 0; }
+  .facts b { display: block; font-size: .9rem; color: var(--pine-soft); font-weight: 600; margin-bottom: 2px; }
+  .facts span, .facts a { font-size: 1.12rem; }
+  .facts a { text-decoration-color: var(--moss); text-underline-offset: 4px; }
+  .map { border-radius: var(--r-card); overflow: hidden; min-height: 360px; background: var(--leaf); border: 1px solid var(--line); }
+  .map iframe { width: 100%; height: 100%; min-height: 360px; border: 0; display: block; }
+  .btns { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  /* 문의 */
+  .contact-grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(28px, 5vw, 72px); align-items: start; }
+  .contact .aside p { color: var(--pine-soft); margin: 0 0 14px; }
+  .contact .aside a { font-weight: 600; }
+  form.inquiry { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-card); padding: clamp(22px, 3.4vw, 40px); box-shadow: var(--shadow); display: grid; gap: 22px; }
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  legend, .field > label { font-weight: 600; margin-bottom: 10px; display: block; padding: 0; }
+  .kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .kinds label { position: relative; }
+  .kinds input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .kinds span { display: flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 1rem; border: 1.5px solid var(--line); background: var(--mist); font-weight: 600; text-align: center; padding: 6px; transition: all .3s var(--ease); }
+  .kinds input:checked + span { background: var(--pine); color: var(--mist); border-color: var(--pine); }
+  .kinds input:focus-visible + span { outline: 3px solid var(--moss); outline-offset: 2px; }
+  .field input, .field textarea {
+    width: 100%; font: inherit; color: var(--pine); background: var(--mist);
+    border: 1.5px solid transparent; border-radius: 1rem; padding: 14px 16px; min-height: 52px;
+    transition: border-color .3s var(--ease), background .3s var(--ease);
+  }
+  .field textarea { min-height: 140px; resize: vertical; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--pine); background: #fff; }
+  .row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+  .check { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+  .check input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--pine); flex: 0 0 auto; }
+  .check small { display: block; color: var(--pine-soft); font-size: .9rem; }
+  .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .form-msg { margin: 0; font-weight: 600; min-height: 1.4em; }
+  .form-msg.ok { color: #2e6b3f; }
+  .form-msg.err { color: #a2412b; }
+  form.inquiry .btn { width: 100%; }
+  form.inquiry .btn[disabled] { opacity: .6; cursor: wait; }
+
+  footer { background: var(--pine); color: var(--sage); padding: clamp(48px, 7vw, 80px) 0 calc(32px + env(safe-area-inset-bottom)); margin-top: calc(var(--r-band) * -1); border-radius: var(--r-band) var(--r-band) 0 0; position: relative; }
+  .foot-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr)); gap: 32px; }
+  footer .brand { color: #f3f6ec; margin-bottom: 12px; font-size: 1.4rem; }
+  footer p { margin: 0 0 6px; }
+  footer h3 { font-size: .95rem; font-weight: 600; color: #f3f6ec; margin: 0 0 12px; }
+  footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  footer a { text-decoration-color: rgba(211, 220, 195, .4); text-underline-offset: 4px; }
+  .copy { margin-top: 48px; padding-top: 20px; border-top: 1px solid rgba(211, 220, 195, .16); font-size: .88rem; opacity: .6; }
+
+  /* 화면에 들어올 때 살짝 올라오기 (설교·문의 두 곳만) */
+  .reveal { opacity: 0; transform: translateY(48px); transition: opacity 1.2s var(--ease), transform 1.2s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 960px) {
+    .nav { display: none; }
+    .hero-grid, .worship-grid, .pastor-grid, .sermon-grid, .visit-grid, .contact-grid { grid-template-columns: minmax(0, 1fr); }
+    .portrait { max-width: 300px; }
+    .foot-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .foot-grid > div:first-child { grid-column: 1 / -1; }
+  }
+  @media (max-width: 560px) {
+    body { font-size: 16px; }
+    .brand span { font-size: 1rem; }
+    .top .btn { padding: 0 1em; }
+    .row2 { grid-template-columns: minmax(0, 1fr); }
+    .kinds span { font-size: .95rem; }
+    .list button { grid-template-columns: 96px minmax(0, 1fr); }
+    .list img { width: 96px; }
+    .hero-actions .btn { flex: 1 1 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="brand" href="#">
+      <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#1f3a2c"/><path d="M29 14h6v12h10v6H35v18h-6V32H19v-6h10z" fill="#d3dcc3"/></svg>
+      <span>갈릴리 장로교회</span>
+    </a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="#worship">예배 안내</a>
+      <a href="#pastor">목사님</a>
+      <a href="#sermons">설교</a>
+      <a href="#visit">오시는 길</a>
+    </nav>
+    <a class="btn btn-main" href="#contact">문의하기</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="hero-church">토론토 갈릴리 장로교회 · 김종화 목사</p>
+        <h1><span class="line"><span>토론토에서 함께 예배드릴</span></span><span class="line"><span>교회를 찾고 계신가요?</span></span></h1>
+        <p class="hero-lead">갈릴리 장로교회가 기다립니다. 예배 시간과 오시는 길을 확인하시고, 궁금한 점이나 기도 제목은 목사님께 편하게 남겨 주세요.</p>
+        <div class="hero-actions">
+          <a class="btn btn-main" href="#contact">목사님께 문의하기</a>
+          <a class="btn btn-line" href="#sermons">최근 설교 보기</a>
+        </div>
+      </div>
+
+      <aside class="board" aria-label="예배 시간">
+        <p class="board-next"><span class="dot" aria-hidden="true"></span><span id="nextService">이번 주일 오전 11시에 만나요</span></p>
+        <ul>
+          <li><span class="name">주일예배<small>유아유치부 · 아동부 · 청소년/청년부 함께</small></span><span class="time"><em>주일 오전</em>11:00</span></li>
+          <li><span class="name">수요예배</span><span class="time"><em>수요일 오후</em>7:30</span></li>
+          <li><span class="name">토요 기도회</span><span class="time"><em>토요일 오전</em>7:00</span></li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <section class="band worship" id="worship" aria-labelledby="worship-title">
+    <div class="wrap">
+      <h2 id="worship-title">예배 안내</h2>
+      <p class="intro">처음 오시는 분도 주일 오전 11시에 오시면 됩니다. 자녀들은 같은 시간에 각 부서에서 예배드립니다.</p>
+      <div class="worship-grid">
+        <div class="card">
+          <h3>예배 시간</h3>
+          <p class="sub">모든 시간은 토론토 시간 기준입니다.</p>
+          <table class="times">
+            <tbody>
+              <tr><th scope="row">주일예배</th><td>주일 오전 11시</td></tr>
+              <tr><th scope="row">수요예배</th><td>수요일 오후 7:30</td></tr>
+              <tr><th scope="row">토요 기도회</th><td>토요일 오전 7시</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>다음 세대 부서</h3>
+          <p class="sub">모두 주일 오전 11시, 주일예배와 같은 시간입니다.</p>
+          <ul class="dept">
+            <li>유아유치부</li>
+            <li>아동부</li>
+            <li>청소년/청년부</li>
+          </ul>
+          <p class="note">부서 예배가 궁금하시면 아래 문의 양식으로 물어봐 주세요.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band pastor" id="pastor" aria-labelledby="pastor-title">
+    <div class="wrap pastor-grid">
+      <div class="portrait" role="img" aria-label="김종화 목사 사진 자리 (사진 준비 중)">
+        <div><strong>김종화</strong>사진 준비 중</div>
+      </div>
+      <div>
+        <h2 id="pastor-title">김종화 목사</h2>
+        <p class="role">토론토 갈릴리 장로교회</p>
+        <p class="pending">목사님 약력과 소개글은 준비 중이에요. 그동안 주일 설교 영상으로 먼저 만나 보세요.</p>
+        <div class="btns">
+          <a class="btn btn-main" href="#sermons">설교 영상 보기</a>
+          <a class="btn btn-line" href="#contact">목사님께 문의하기</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band sermons" id="sermons" aria-labelledby="sermons-title">
+    <div class="wrap">
+      <h2 id="sermons-title">최근 설교</h2>
+      <p class="intro">매주 주일예배 설교를 유튜브에 올립니다. 교회에 오시기 전에 말씀으로 먼저 만나 보세요.</p>
+      <div class="sermon-grid reveal">
+        <div>
+          <div class="player" id="player">
+            <iframe title="토론토 갈릴리 장로교회 최근 설교" loading="lazy"
+              src="https://www.youtube-nocookie.com/embed/videoseries?list=UUNEjVEGv_ToS2x1Tps8w1GA"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+          <p class="now" id="now" hidden><strong id="nowTitle"></strong><span id="nowMeta"></span></p>
+        </div>
+        <div>
+          <ul class="list" id="sermonList" aria-label="다른 설교"></ul>
+          <a class="btn btn-line" href="https://www.youtube.com/@TorontoGalileeChurch" target="_blank" rel="noopener">유튜브 채널에서 모든 설교 보기</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band visit" id="visit" aria-labelledby="visit-title">
+    <div class="wrap">
+      <h2 id="visit-title">오시는 길</h2>
+      <p class="intro">Davenport Road에 있습니다. 교회 소식과 사진은 교회 홈페이지에서도 보실 수 있어요.</p>
+      <div class="visit-grid">
+        <div class="card">
+          <ul class="facts">
+            <li><b>주소</b><span>1183 Davenport Rd., Toronto, ON M6H 2G7</span></li>
+            <li><b>주차</b><span>근처 학교나 주택 주변에 주차하시고 교회로 오시면 됩니다.</span></li>
+            <li><b>전화</b><a href="tel:+14165334596">416-533-4596</a></li>
+            <li><b>교회 홈페이지</b><a href="http://www.galileechurch.ca/" target="_blank" rel="noopener">www.galileechurch.ca</a></li>
+          </ul>
+          <div class="btns">
+            <a class="btn btn-main" href="https://www.google.com/maps/dir/?api=1&amp;destination=1183+Davenport+Rd,+Toronto,+ON+M6H+2G7" target="_blank" rel="noopener">구글 지도로 길찾기</a>
+            <a class="btn btn-line" href="http://www.galileechurch.ca/" target="_blank" rel="noopener">교회 홈페이지</a>
+          </div>
+        </div>
+        <div class="map">
+          <iframe title="토론토 갈릴리 장로교회 위치 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.google.com/maps?q=1183+Davenport+Rd,+Toronto,+ON+M6H+2G7&amp;z=15&amp;output=embed"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 후기 자리: 실제 성도 후기가 생기면 이곳에 넣는다 (설계도 4·6번) -->
+
+  <section class="band contact" id="contact" aria-labelledby="contact-title">
+    <div class="wrap contact-grid">
+      <div class="aside">
+        <h2 id="contact-title">목사님께 문의하기</h2>
+        <p>신앙 고민, 교회에 대한 질문, 기도 제목 무엇이든 남겨 주세요. 김종화 목사님께 바로 전달됩니다.</p>
+        <p>기도 제목은 이름 없이도 남기실 수 있어요.</p>
+        <p>전화로 바로 이야기하고 싶으시면 <a href="tel:+14165334596">416-533-4596</a></p>
+      </div>
+
+      <form class="inquiry reveal" id="inquiryForm" novalidate>
+        <fieldset>
+          <legend>어떤 이야기인가요?</legend>
+          <div class="kinds">
+            <label><input type="radio" name="kind" value="신앙상담" checked><span>신앙상담</span></label>
+            <label><input type="radio" name="kind" value="문의"><span>문의</span></label>
+            <label><input type="radio" name="kind" value="기도요청"><span>기도요청</span></label>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label for="message">내용</label>
+          <textarea id="message" name="message" maxlength="1000" required placeholder="편하게 적어 주세요."></textarea>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" id="anonymous" name="anonymous">
+          <span>이름 없이 남기기<small>이름과 연락처 없이 보냅니다. 이 경우 답장은 드릴 수 없어요.</small></span>
+        </label>
+
+        <div class="row2" id="who">
+          <div class="field">
+            <label for="name">이름</label>
+            <input id="name" name="name" maxlength="50" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="contact">연락처 (전화 또는 이메일)</label>
+            <input id="contact" name="contact" maxlength="100" autocomplete="tel">
+          </div>
+        </div>
+
+        <label class="check" id="consentRow">
+          <input type="checkbox" id="consent" name="consent">
+          <span>개인정보 수집·이용에 동의합니다 (필수)<small>답변을 드리기 위해 이름과 연락처를 받습니다. 답변 외의 목적으로 쓰거나 다른 곳에 넘기지 않습니다.</small></span>
+        </label>
+
+        <div class="trap" aria-hidden="true">
+          <label for="website">웹사이트</label>
+          <input id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <button class="btn btn-main" type="submit" id="sendBtn">보내기</button>
+        <p class="form-msg" id="formMsg" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#">토론토 갈릴리 장로교회</a>
+        <p>1183 Davenport Rd., Toronto, ON M6H 2G7</p>
+        <p><a href="tel:+14165334596">416-533-4596</a></p>
+      </div>
+      <div>
+        <h3>예배</h3>
+        <ul>
+          <li>주일예배 주일 오전 11시</li>
+          <li>수요예배 수요일 오후 7:30</li>
+          <li>토요 기도회 토요일 오전 7시</li>
+        </ul>
+      </div>
+      <div>
+        <h3>바로가기</h3>
+        <ul>
+          <li><a href="http://www.galileechurch.ca/" target="_blank" rel="noopener">교회 홈페이지</a></li>
+          <li><a href="https://www.youtube.com/@TorontoGalileeChurch" target="_blank" rel="noopener">유튜브 설교 채널</a></li>
+          <li><a href="#contact">목사님께 문의하기</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="copy">© <span id="year">2026</span> 토론토 갈릴리 장로교회</p>
+  </div>
+</footer>
+
+<script>
+  // 스크롤하면 상단 메뉴에 배경
+  const topBar = document.getElementById('top');
+  const onScroll = () => topBar.classList.toggle('scrolled', window.scrollY > 24);
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // 다음 예배 (토론토 시간 기준)
+  (function nextService() {
+    const services = [
+      { name: '주일예배', day: 0, h: 11, m: 0, label: '오전 11시' },
+      { name: '수요예배', day: 3, h: 19, m: 30, label: '오후 7:30' },
+      { name: '토요 기도회', day: 6, h: 7, m: 0, label: '오전 7시' },
+    ];
+    const dayNames = ['주일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    try {
+      const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Toronto', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23'
+      }).formatToParts(new Date()).map(p => [p.type, p.value]));
+      const today = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(parts.weekday);
+      const nowMin = Number(parts.hour) * 60 + Number(parts.minute);
+      let best = null;
+      services.forEach(s => {
+        let diff = (s.day - today + 7) % 7;
+        const sMin = s.h * 60 + s.m;
+        if (diff === 0 && sMin + 90 <= nowMin) diff = 7;          // 끝난 예배는 다음 주로
+        const score = diff * 1440 + sMin - (diff === 0 ? nowMin : 0);
+        if (!best || score < best.score) best = { ...s, diff, score, sMin };
+      });
+      let when;
+      if (best.diff === 0) when = (best.sMin <= nowMin ? '지금 ' : '오늘 ') + best.label;
+      else if (best.diff === 1) when = '내일 ' + best.label;
+      else when = '이번 ' + dayNames[best.day] + ' ' + best.label;
+      const text = best.diff === 0 && best.sMin <= nowMin
+        ? `지금 ${best.name} 중이에요`
+        : `다음 예배: ${when} ${best.name}`;
+      document.getElementById('nextService').textContent = text;
+    } catch (e) { /* 기본 문구 유지 */ }
+  })();
+
+  // 설교 목록: 서버가 유튜브 채널에서 읽어 온 최신 영상
+  (async function sermons() {
+    const list = document.getElementById('sermonList');
+    const player = document.getElementById('player');
+    let videos = [];
+    try {
+      const r = await fetch('/api/sermons');
+      if (r.ok) videos = (await r.json()).videos || [];
+    } catch (e) {}
+    if (!videos.length) return; // 채널 재생목록 플레이어가 그대로 최신 설교를 보여 줌
+
+    const split = (title) => {
+      const p = title.split('|').map(s => s.trim()).filter(Boolean);
+      return { main: p[1] || title, meta: [p[0], p[2]].filter(Boolean).join(' · ') };
+    };
+    const show = (v, play) => {
+      const t = split(v.title);
+      player.innerHTML = '';
+      if (play) {
+        const f = document.createElement('iframe');
+        f.title = v.title;
+        f.src = `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0`;
+        f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        f.allowFullscreen = true;
+        player.append(f);
+      } else {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.style.backgroundImage = `url(https://i.ytimg.com/vi/${v.id}/hqdefault.jpg)`;
+        b.setAttribute('aria-label', `${t.main} 설교 재생`);
+        b.addEventListener('click', () => show(v, true));
+        player.append(b);
+      }
+      document.getElementById('nowTitle').textContent = t.main;
+      document.getElementById('nowMeta').textContent = t.meta;
+      document.getElementById('now').hidden = false;
+      list.querySelectorAll('button').forEach(x => x.setAttribute('aria-current', String(x.dataset.id === v.id)));
+    };
+
+    videos.slice(0, 5).forEach(v => {
+      const t = split(v.title);
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.id = v.id;
+      const img = document.createElement('img');
+      img.src = `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`; img.alt = ''; img.loading = 'lazy';
+      const box = document.createElement('span');
+      const bt = document.createElement('b'); bt.textContent = t.main;
+      const sm = document.createElement('small'); sm.textContent = t.meta;
+      box.append(bt, sm); b.append(img, box);
+      b.addEventListener('click', () => show(v, true));
+      li.append(b); list.append(li);
+    });
+    show(videos[0], false);
+  })();
+
+  // 설교·문의 두 곳만 화면에 들어올 때 올라오기
+  const io = 'IntersectionObserver' in window ? new IntersectionObserver((es) => {
+    es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: .15 }) : null;
+  document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+
+  // 문의 양식
+  (function inquiry() {
+    const form = document.getElementById('inquiryForm');
+    const anon = document.getElementById('anonymous');
+    const who = document.getElementById('who');
+    const consentRow = document.getElementById('consentRow');
+    const msg = document.getElementById('formMsg');
+    const btn = document.getElementById('sendBtn');
+    const say = (text, kind) => { msg.textContent = text; msg.className = 'form-msg ' + (kind || ''); };
+
+    anon.addEventListener('change', () => {
+      who.hidden = anon.checked;
+      consentRow.hidden = anon.checked;
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = (id) => document.getElementById(id).value.trim();
+      const data = {
+        kind: form.querySelector('input[name="kind"]:checked').value,
+        message: v('message'),
+        anonymous: anon.checked,
+        name: anon.checked ? '' : v('name'),
+        contact: anon.checked ? '' : v('contact'),
+        consent: anon.checked ? false : document.getElementById('consent').checked,
+        website: v('website'),
+      };
+      if (!data.message) { say('내용을 적어 주세요.', 'err'); document.getElementById('message').focus(); return; }
+      if (!data.anonymous) {
+        if (!data.name || !data.contact) { say('이름과 연락처를 적어 주세요. 이름 없이 보내시려면 "이름 없이 남기기"를 눌러 주세요.', 'err'); return; }
+        if (!data.consent) { say('개인정보 수집·이용에 동의해 주세요.', 'err'); return; }
+      }
+      btn.disabled = true; btn.textContent = '보내는 중…'; say('');
+      try {
+        const r = await fetch('/api/inquiry', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || '보내지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+        form.reset(); who.hidden = false; consentRow.hidden = false;
+        say(data.anonymous ? '잘 전달됐어요. 이름 없이 보내셔서 답장은 드리지 않아요.' : '문의가 접수됐어요. 확인 후 연락드릴게요.', 'ok');
+      } catch (err) {
+        say(err.message || '보내지 못했어요. 잠시 뒤 다시 시도해 주세요.', 'err');
+      } finally {
+        btn.disabled = false; btn.textContent = '보내기';
+      }
+    });
+  })();
+</script>
+</body>
+</html>
