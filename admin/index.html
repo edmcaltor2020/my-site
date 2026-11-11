@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>문의함 · 갈릴리 장로교회</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root {
+    --pine: #1f3a2c; --pine-soft: #3d5a48; --sage: #d3dcc3; --mist: #eef1e8;
+    --paper: #fbfcf8; --leaf: #e2e8d5; --line: rgba(31, 58, 44, .16);
+    --new: #a2412b; --done: #6b7c62;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0; background: var(--mist); color: var(--pine);
+    font-family: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    font-size: 16px; line-height: 1.55; word-break: keep-all;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 24px max(16px, env(safe-area-inset-left)) 48px max(16px, env(safe-area-inset-right)); }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  .sub { color: var(--pine-soft); margin: 0 0 24px; }
+  :focus-visible { outline: 3px solid #7b8c5c; outline-offset: 2px; }
+  button, input { font: inherit; }
+  .btn { min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1.5px solid var(--pine); background: var(--pine); color: var(--mist); font-weight: 600; cursor: pointer; }
+  .btn.line { background: transparent; color: var(--pine); }
+
+  /* 로그인 */
+  .login { background: var(--paper); border: 1px solid var(--line); border-radius: 1.5rem; padding: 28px; display: grid; gap: 14px; margin-top: 12vh; }
+  .login label { font-weight: 600; }
+  .login input { min-height: 52px; border-radius: 1rem; border: 1.5px solid var(--line); padding: 0 16px; background: var(--mist); color: var(--pine); }
+  .login input:focus { outline: none; border-color: var(--pine); background: #fff; }
+  .err { color: var(--new); font-weight: 600; margin: 0; min-height: 1.4em; }
+
+  /* 목록 */
+  .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .count { background: var(--pine); color: var(--sage); border-radius: 1.5rem; padding: 20px 24px; margin-bottom: 18px; display: flex; align-items: baseline; gap: 12px; }
+  .count b { font-size: 3rem; line-height: 1; color: #f3f6ec; font-variant-numeric: tabular-nums; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .filters button { min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--paper); color: var(--pine); cursor: pointer; font-weight: 600; }
+  .filters button[aria-pressed="true"] { background: var(--pine); color: var(--mist); border-color: var(--pine); }
+  .list { display: grid; gap: 12px; }
+  .item { background: var(--paper); border: 1px solid var(--line); border-radius: 1.25rem; padding: 18px; }
+  .item.is-new { border-left: 5px solid var(--new); }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; font-size: .9rem; color: var(--pine-soft); }
+  .tag { background: var(--leaf); color: var(--pine); border-radius: 999px; padding: 2px 10px; font-weight: 600; }
+  .who { font-weight: 700; font-size: 1.05rem; }
+  .contact { background: none; border: 0; padding: 4px 0; color: var(--pine); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; font-size: 1rem; }
+  .msg { white-space: pre-wrap; margin: 10px 0 14px; overflow-wrap: anywhere; }
+  .status { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .status button { min-height: 44px; border-radius: .8rem; border: 1.5px solid var(--line); background: var(--mist); color: var(--pine); font-weight: 600; cursor: pointer; }
+  .status button[aria-pressed="true"] { background: var(--pine); color: var(--mist); border-color: var(--pine); }
+  .empty { text-align: center; color: var(--pine-soft); padding: 40px 0; }
+  .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--pine); color: var(--mist); padding: 10px 18px; border-radius: 999px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <form class="login" id="loginForm">
+    <h1>문의함</h1>
+    <p class="sub" style="margin:0">갈릴리 장로교회 관리자 전용입니다.</p>
+    <label for="pw">관리자 비밀번호</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <button class="btn" type="submit">들어가기</button>
+    <p class="err" id="loginErr" role="alert"></p>
+  </form>
+
+  <section id="board" hidden>
+    <div class="head">
+      <div>
+        <h1>문의함</h1>
+        <p class="sub" style="margin:0">신앙상담 · 문의 · 기도요청</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn line" type="button" id="reload">새로고침</button>
+        <button class="btn line" type="button" id="logout">나가기</button>
+      </div>
+    </div>
+    <div class="count"><b id="newCount">0</b><span>새 문의</span></div>
+    <div class="filters" id="filters">
+      <button type="button" data-f="새 문의" aria-pressed="true">새 문의</button>
+      <button type="button" data-f="연락함" aria-pressed="false">연락함</button>
+      <button type="button" data-f="완료" aria-pressed="false">완료</button>
+      <button type="button" data-f="전체" aria-pressed="false">전체</button>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+  const KEY = 'galilee-admin-pw';
+  const STATUSES = ['새 문의', '연락함', '완료'];
+  const $ = (id) => document.getElementById(id);
+  let rows = [];
+  let filter = '새 문의';
+
+  const getPw = () => { try { return sessionStorage.getItem(KEY) || ''; } catch { return ''; } };
+  const setPw = (v) => { try { v ? sessionStorage.setItem(KEY, v) : sessionStorage.removeItem(KEY); } catch {} };
+  const toast = (t) => { const el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2000); };
+
+  async function api(method, body) {
+    const r = await fetch('/api/admin', {
+      method,
+      headers: { 'x-admin-password': getPw(), ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401) { const e = new Error(j.error || '비밀번호가 맞지 않아요.'); e.auth = true; throw e; }
+    if (!r.ok) throw new Error(j.error || '문제가 생겼어요.');
+    return j;
+  }
+
+  function showLogin(errText) {
+    setPw('');
+    $('board').hidden = true; $('loginForm').hidden = false;
+    $('loginErr').textContent = errText || '';
+    $('pw').value = ''; $('pw').focus();
+  }
+
+  async function load() {
+    try {
+      const j = await api('GET');
+      rows = j.rows || [];
+      $('loginForm').hidden = true; $('board').hidden = false;
+      render();
+    } catch (e) {
+      if (e.auth) showLogin('비밀번호가 맞지 않아요.');
+      else if ($('board').hidden) showLogin(e.message);
+      else toast(e.message);
+    }
+  }
+
+  const fmt = (iso) => new Intl.DateTimeFormat('ko-KR', { timeZone: 'America/Toronto', month: 'long', day: 'numeric', weekday: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
+
+  function el(tag, props = {}, kids = []) { const n = document.createElement(tag); Object.assign(n, props); kids.forEach(k => n.append(k)); return n; }
+
+  function render() {
+    $('newCount').textContent = rows.filter(r => r.status === '새 문의').length;
+    document.querySelectorAll('#filters button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === filter)));
+    const list = $('list'); list.innerHTML = '';
+    const shown = filter === '전체' ? rows : rows.filter(r => r.status === filter);
+    if (!shown.length) { list.append(el('p', { className: 'empty', textContent: filter === '새 문의' ? '새 문의가 없어요.' : '해당하는 문의가 없어요.' })); return; }
+    shown.forEach(r => {
+      const card = el('article', { className: 'item' + (r.status === '새 문의' ? ' is-new' : '') });
+      card.append(el('div', { className: 'meta' }, [el('span', { className: 'tag', textContent: r.kind || '문의' }), el('span', { textContent: fmt(r.created_at) })]));
+      if (r.anonymous) {
+        card.append(el('div', { className: 'who', textContent: '이름 없이 남김' }));
+      } else {
+        card.append(el('div', { className: 'who', textContent: r.name || '' }));
+        if (r.contact) {
+          const c = el('button', { className: 'contact', type: 'button', textContent: r.contact, title: '눌러서 복사' });
+          c.addEventListener('click', async () => {
+            try { await navigator.clipboard.writeText(r.contact); toast('연락처를 복사했어요'); }
+            catch { const s = getSelection(), rg = document.createRange(); rg.selectNodeContents(c); s.removeAllRanges(); s.addRange(rg); toast('선택했어요. 복사해 주세요'); }
+          });
+          card.append(c);
+        }
+      }
+      card.append(el('p', { className: 'msg', textContent: r.message || '' }));
+      const st = el('div', { className: 'status', role: 'group' });
+      st.setAttribute('aria-label', '처리 상태');
+      STATUSES.forEach(s => {
+        const b = el('button', { type: 'button', textContent: s });
+        b.setAttribute('aria-pressed', String(r.status === s));
+        b.addEventListener('click', async () => {
+          if (r.status === s) return;
+          try { await api('PATCH', { id: r.id, status: s }); toast(`'${s}'(으)로 바꿨어요`); await load(); }
+          catch (e) { if (e.auth) showLogin('비밀번호가 맞지 않아요.'); else toast(e.message); }
+        });
+        st.append(b);
+      });
+      card.append(st);
+      list.append(card);
+    });
+  }
+
+  $('loginForm').addEventListener('submit', (e) => { e.preventDefault(); setPw($('pw').value); load(); });
+  $('reload').addEventListener('click', load);
+  $('logout').addEventListener('click', () => showLogin(''));
+  $('filters').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; filter = b.dataset.f; render(); });
+
+  if (getPw()) load(); else $('pw').focus();
+</script>
+</body>
+</html>
